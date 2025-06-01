@@ -3,6 +3,7 @@ const User = require('../models/user')
 const Day = require('../models/day')
 
 const errorHandler = (error, request, response, next) => {
+  console.error(error.message)
 
   if (error.name === 'CastError') {
     return response.status(400).send({ error: 'malformatted id' })
@@ -13,6 +14,8 @@ const errorHandler = (error, request, response, next) => {
   } else if (error.name ===  'JsonWebTokenError') {
     return response.status(400).json({ error: 'token missing or invalid' })
   }
+  // Log unhandled errors before passing them to the default error handler
+  console.error('Unhandled error in errorHandler:', error)
   next(error)
 }
 
@@ -27,12 +30,21 @@ const tokenExtractor = (request, response, next) => {
 const userExtractor = async (request, response, next) => {
   const decodedToken = jwt.verify(request.token, process.env.SECRET)
   request.user = await User.findById(decodedToken.id)
+  if (!request.user) {
+    return response.status(401).json({ error: 'User not found for token' })
+  }
   next()
 }
 
 const dayExtractor = async (request, response, next) => {
+  if (!request.user) {
+    // Decide if to call next() to allow access to public routes if any,
+    // or next(new Error('User not available for day extraction'))
+    // For now, let's assume an error should be propagated if user is expected.
+    return next(new Error('User not available for day extraction. Ensure userExtractor runs first and successfully.'))
+  }
   const day = await Day.findOne({ userId: request.user._id }).sort({ date: -1 })
-  if (day.date !== new Date().toDateString()) {
+  if (!day || day.date !== new Date().toDateString()) {
     const newDay = new Day({
       userId: request.user._id,
       date: new Date().toDateString()
