@@ -8,7 +8,8 @@ const daySchema = new mongoose.Schema({
   },
   date: {
     type: Date,
-    required: true
+    required: true,
+    unique: true
   },
 }, {
   toJSON: { virtuals: true,

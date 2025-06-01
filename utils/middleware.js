@@ -38,20 +38,22 @@ const userExtractor = async (request, response, next) => {
 
 const dayExtractor = async (request, response, next) => {
   if (!request.user) {
-    // Decide if to call next() to allow access to public routes if any,
-    // or next(new Error('User not available for day extraction'))
-    // For now, let's assume an error should be propagated if user is expected.
     return next(new Error('User not available for day extraction. Ensure userExtractor runs first and successfully.'))
   }
-  const day = await Day.findOne({ userId: request.user._id }).sort({ date: -1 })
-  if (!day || day.date !== new Date().toDateString()) {
+
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+
+  const day = await Day.findOne({ userId: request.user._id }, {}, { sort: { 'date': -1 } })
+
+  if (day && day.date.getTime() === today.getTime()) {
+    request.day = day
+  } else {
     const newDay = new Day({
       userId: request.user._id,
-      date: new Date().toDateString()
+      date: today // Use the 'today' variable which is already set to the start of the day
     })
     request.day = await newDay.save()
-  } else {
-    request.day = day
   }
   next()
 }

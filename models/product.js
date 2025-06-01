@@ -33,22 +33,22 @@ const productSchema = new mongoose.Schema({
 
 productSchema.virtual('status', {
   ref: 'Status',
-  localField: '_id',
-  foreignField: 'productId',
+  localField: 'barcode',
+  foreignField: 'productBarcode',
   justOne: true
 })
 
 productSchema.virtual('symptoms', {
   ref: 'Symptom',
-  localField: '_id',
-  foreignField: 'productId',
+  localField: 'barcode',
+  foreignField: 'productBarcode',
   justOne: false
 })
 
 productSchema.virtual('claims', {
   ref: 'Claim',
-  localField: '_id',
-  foreignField: 'productId',
+  localField: 'barcode',
+  foreignField: 'productBarcode',
   justOne: false
 })
 
