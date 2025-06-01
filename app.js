@@ -10,6 +10,7 @@ const productRouter = require('./controllers/products')
 const scanRouter = require('./controllers/scans')
 const claimRouter = require('./controllers/claims')
 const dayRouter = require('./controllers/days')
+const symptomRouter = require('./controllers/symptoms')
 
 const app = express()
 
@@ -29,7 +30,6 @@ morgan.token('body', req => {
 app.use(morgan(':method :url :status :res[content-length] :response-time ms :body'))
 app.use(express.json())
 app.use(cors())
-app.use(middleware.errorHandler, middleware.unknownEndpoint)
 
 app.get('/', (req, res) => {
   res.send('Welcome to GlutenPeek Api!')
@@ -42,5 +42,8 @@ app.use('/api/products', productRouter)
 app.use('/api/scans', scanRouter)
 app.use('/api/claims', claimRouter)
 app.use('/api/days', dayRouter)
+app.use('/api/symptoms', symptomRouter)
+
+app.use(middleware.errorHandler, middleware.unknownEndpoint)
 
 module.exports = app

@@ -37,9 +37,10 @@ const dayExtractor = async (request, response, next) => {
       userId: request.user._id,
       date: new Date().toDateString()
     })
-    await newDay.save()
+    request.day = await newDay.save()
+  } else {
+    request.day = day
   }
-  request.day = await Day.findOne({ userId: request.user._id }).sort({ date: -1 })
   next()
 }
 

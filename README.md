@@ -1,11 +1,11 @@
 ## Backend for gluten peek app
 
 ### Tasks Left:
-- post request for each scan DONE
+- post request for each scan DONE 
 
-- post request when reporting symptoms
+- post request when reporting symptoms DONE
 
-- get request for day data with paremeter for number of days, so that a suitable number of days is returned
+- get request for day data with paremeter for number of days, so that a suitable number of days is returned DONE
 
 - post request for claims, so that a user can make a claim and descirbe whats wrong with a labelling DONE
 
