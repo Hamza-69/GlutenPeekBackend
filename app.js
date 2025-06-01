@@ -26,16 +26,14 @@ morgan.token('body', req => {
 app.use(morgan(':method :url :status :res[content-length] :response-time ms :body'))
 app.use(express.json())
 app.use(cors())
-app.use(middleware.tokenExtractor, userRouter)
-app.use(middleware.userExtractor, userRouter)
 
 app.get('/', (req, res) => {
   res.send('Welcome to GlutenPeek Api!')
 })
 
-app.use('/api/users', userRouter)
+app.use('/api/users', userRouter, middleware.userExtractor, middleware.tokenExtractor)
 app.use('/api/login', loginRouter)
-app.use('/api/products', productRouter)
+app.use('/api/products', productRouter, middleware.userExtractor, middleware.tokenExtractor)
 
 
 module.exports = app

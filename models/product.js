@@ -1,6 +1,10 @@
 const mongoose = require('mongoose')
 
 const productSchema = new mongoose.Schema({
+  barcode: {
+    type: Number,
+    required: true
+  },
   name: {
     type: String,
     required: true,
@@ -9,10 +13,6 @@ const productSchema = new mongoose.Schema({
   ingredients: {
     type: [String],
     required: true
-  },
-  status: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Status',
   },
   pictureUrl: {
     type: String,
@@ -29,6 +29,13 @@ const productSchema = new mongoose.Schema({
     }
   },
   toObject: { virtuals: true }
+})
+
+productSchema.virtual('status', {
+  ref: 'Status',
+  localField: '_id',
+  foreignField: 'productId',
+  justOne: true
 })
 
 productSchema.virtual('symptoms', {
