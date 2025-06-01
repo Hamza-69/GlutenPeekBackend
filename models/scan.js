@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require('mongoose')
 
 const scanSchema = new mongoose.Schema({
   userId: {
@@ -29,13 +29,13 @@ const scanSchema = new mongoose.Schema({
 }, {
   toJSON: {
     transform(doc, ret) {
-      ret.id = ret._id.toString();
-      delete ret._id;
-      delete ret.__v;
-      return ret;
+      ret.id = ret._id.toString()
+      delete ret._id
+      delete ret.__v
+      return ret
     } 
   }
-});
+})
 
 
-module.exports = mongoose.model('Scan', scanSchema);
+module.exports = mongoose.model('Scan', scanSchema)

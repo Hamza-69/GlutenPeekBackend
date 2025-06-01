@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require('mongoose')
 
 const symptomSchema = new mongoose.Schema({
   userId: {
@@ -33,13 +33,13 @@ const symptomSchema = new mongoose.Schema({
 }, {
   toJSON: {
     transform(doc, ret) {
-      ret.id = ret._id.toString();
-      delete ret._id;
-      delete ret.__v;
-      return ret;
+      ret.id = ret._id.toString()
+      delete ret._id
+      delete ret.__v
+      return ret
     } 
   }
-});
+})
 
 
-module.exports = mongoose.model('Symptom', symptomSchema);
+module.exports = mongoose.model('Symptom', symptomSchema)

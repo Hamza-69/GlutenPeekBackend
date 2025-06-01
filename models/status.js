@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require('mongoose')
 
 const statusSchema = new mongoose.Schema({
   productId: {
@@ -23,12 +23,12 @@ const statusSchema = new mongoose.Schema({
   toJSON: {
     virtuals: true,
     transform(doc, ret) {
-      delete ret._id;
-      delete ret.__v;
-      return ret;
+      delete ret._id
+      delete ret.__v
+      return ret
     }
   },
   toObject: { virtuals: true }
-});
+})
 
-module.exports = mongoose.model('Status', statusSchema);
+module.exports = mongoose.model('Status', statusSchema)

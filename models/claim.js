@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require('mongoose')
 
 const claimSchema = new mongoose.Schema({
   userId: {
@@ -29,12 +29,12 @@ const claimSchema = new mongoose.Schema({
   toJSON: {
     virtuals: true,
     transform(doc, ret) {
-      delete ret._id;
-      delete ret.__v;
-      return ret;
+      delete ret._id
+      delete ret.__v
+      return ret
     }
   },
   toObject: { virtuals: true }
-});
+})
 
-module.exports = mongoose.model('Claim', claimSchema);
+module.exports = mongoose.model('Claim', claimSchema)
