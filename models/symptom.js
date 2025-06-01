@@ -10,8 +10,8 @@ const symptomSchema = new mongoose.Schema({
     type: Date,
     required: true
   },
-  productId: {
-    type: mongoose.Schema.Types.ObjectId,
+  productBarcode: {
+    type: Number,
     ref: 'Product',
     required: true
   },
