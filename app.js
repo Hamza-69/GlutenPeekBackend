@@ -6,6 +6,7 @@ const env = require('./utils/config')
 const middleware = require('./utils/middleware')
 const userRouter = require('./controllers/users')
 const loginRouter = require('./controllers/login')
+const productRouter = require('./controllers/products')
 
 const app = express()
 
@@ -34,6 +35,7 @@ app.get('/', (req, res) => {
 
 app.use('/api/users', userRouter)
 app.use('/api/login', loginRouter)
+app.use('/api/products', productRouter)
 
 
 module.exports = app
