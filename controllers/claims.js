@@ -10,7 +10,14 @@ claimsRouter.get('/:id', async (req, res) => {
 })
 
 claimsRouter.post('/', async (req, res) => {
-  const claim = new Claim(req.body)
+  let { productBarcode, explanation, mediaProofUrl } = req.body
+  const claim = new Claim({
+    userId:req.user._id,
+    productBarcode,
+    explanation,
+    mediaProofUrl,
+    status: false
+  })
   const savedClaim = await claim.save()
   res.status(201).json(savedClaim)
 })

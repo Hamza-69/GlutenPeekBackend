@@ -6,8 +6,8 @@ const claimSchema = new mongoose.Schema({
     ref: 'User',
     required: true
   },
-  productId: {
-    type: mongoose.Schema.Types.ObjectId,
+  productBarcode: {
+    type: mongoose.Schema.Types.Number,
     ref: 'Product',
     required: true
   },
