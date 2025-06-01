@@ -31,5 +31,6 @@ const dayExtractor = async (request, response, next) => {
 
 module.exports = {
   tokenExtractor,
-  userExtractor
+  userExtractor,
+  dayExtractor
 }

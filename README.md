@@ -1,7 +1,7 @@
 ## Backend for gluten peek app
 
 ### Tasks Left:
-- post request for each scan
+- post request for each scan DONE
 
 - post request when reporting symptoms
 

@@ -9,7 +9,7 @@ scanRouter.post('/', async (request, response) => {
     dayId: request.day._id
   })
   const savedScan = await scan.save()
-  response.status(200).json(savedScan)
+  response.status(201).json(savedScan)
 })
 
 module.exports = scanRouter

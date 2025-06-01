@@ -14,7 +14,8 @@ productRouter.post('/', async (request, response) => {
 })
 
 productRouter.get('/:barcode', async (request, response) => {
-  const product = await Product.find({ barcode: request.params.barcode }).populate([{ path: 'status' }, { path: 'symptoms' }, { path: 'claims' }])
+  const barcode = parseInt(request.params.barcode, 10)
+  const product = await Product.find({ barcode }).populate([{ path: 'status' }, { path: 'symptoms' }, { path: 'claims' }])
   if (!product) return response.status(404).json({ error: 'Product not found' })
   response.status(200).json(product)
 })
