@@ -6,7 +6,10 @@ const mongoose = require('mongoose')
       required: true,
       minLength: 3
     },
-    bio: String,
+    bio: {
+      type: String,
+      default: 'Hi There! I am a new user!'
+    },
     pfp: {
       type: String,
       default: 'https://cdn-icons-png.flaticon.com/512/149/149071.png'
@@ -45,10 +48,5 @@ userSchema.virtual('days', {
   foreignField: 'userId',
   justOne: false
 });
-
-
-userSchema.set('toJSON', {
-  
-})
 
 module.exports = mongoose.model('User', userSchema)
