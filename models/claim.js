@@ -7,7 +7,7 @@ const claimSchema = new mongoose.Schema({
     required: true
   },
   productBarcode: {
-    type: mongoose.Schema.Types.Number,
+    type: Number,
     ref: 'Product',
     required: true
   },

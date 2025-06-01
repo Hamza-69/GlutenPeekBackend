@@ -7,6 +7,8 @@ const middleware = require('./utils/middleware')
 const userRouter = require('./controllers/users')
 const loginRouter = require('./controllers/login')
 const productRouter = require('./controllers/products')
+const scanRouter = require('./controllers/scans')
+const claimRouter = require('./controllers/claims')
 
 const app = express()
 
@@ -30,10 +32,12 @@ app.use(cors())
 app.get('/', (req, res) => {
   res.send('Welcome to GlutenPeek Api!')
 })
-
-app.use('/api/users', userRouter, middleware.userExtractor, middleware.tokenExtractor)
 app.use('/api/login', loginRouter)
-app.use('/api/products', productRouter, middleware.userExtractor, middleware.tokenExtractor)
 
+app.use(middleware.userExtractor, middleware.tokenExtractor)
+app.use('/api/users', userRouter)
+app.use('/api/products', productRouter)
+app.use('/api/scans', scanRouter)
+app.use('/api/claims', claimRouter)
 
 module.exports = app
