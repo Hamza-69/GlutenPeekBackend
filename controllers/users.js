@@ -1,8 +1,9 @@
 const userRouter = require('express').Router()
 const User = require('./../models/user')
 const bcrypt = require('bcrypt')
+const { tokenExtractor, userExtractor, dayExtractor } = require('../utils/middleware')
 
-userRouter.get('/', async (request, response) => {
+userRouter.get('/', tokenExtractor, userExtractor, dayExtractor, async (request, response) => {
   if (!request.user) {
     return response.status(401).json({ error: 'Unauthorized: User not available' })
   }

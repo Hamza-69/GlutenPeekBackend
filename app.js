@@ -35,9 +35,9 @@ app.get('/', (req, res) => {
   res.send('Welcome to GlutenPeek Api!')
 })
 app.use('/api/login', loginRouter)
+app.use('/api/users', userRouter)
 
 app.use(middleware.userExtractor, middleware.tokenExtractor, middleware.dayExtractor)
-app.use('/api/users', userRouter)
 app.use('/api/products', productRouter)
 app.use('/api/scans', scanRouter)
 app.use('/api/claims', claimRouter)
