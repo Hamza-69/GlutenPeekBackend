@@ -23,6 +23,7 @@ const statusSchema = new mongoose.Schema({
   toJSON: {
     virtuals: true,
     transform(doc, ret) {
+      ret.id = ret._id.toString() // Add this line
       delete ret._id
       delete ret.__v
       return ret
