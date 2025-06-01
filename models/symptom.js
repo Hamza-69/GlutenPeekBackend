@@ -24,7 +24,7 @@ const symptomSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Scan',
     required: true
-  }, 
+  },
   severity: {
     type: Number,
     enum: [1, 2, 3, 4, 5],
@@ -37,7 +37,7 @@ const symptomSchema = new mongoose.Schema({
       delete ret._id
       delete ret.__v
       return ret
-    } 
+    }
   }
 })
 

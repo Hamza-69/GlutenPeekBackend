@@ -3,7 +3,7 @@ const User = require('./../models/user')
 const bcrypt = require('bcrypt')
 
 userRouter.get('/', async (request, response) => {
-  response.json(await request.user.toJSON())
+  response.status(200).json(await request.user.toJSON())
 })
 
 userRouter.post('/', async (request, response) => {

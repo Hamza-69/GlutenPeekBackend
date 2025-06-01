@@ -7,9 +7,10 @@
 
 - get request for day data with paremeter for number of days, so that a suitable number of days is returned
 
-- post request for claims, so that a user can make a claim and descirbe whats wrong with a labelling
+- post request for claims, so that a user can make a claim and descirbe whats wrong with a labelling DONE
 
 - get product by barcode: add barcode field to product, and when the user scans another request is done to return the result of the scan ie the product scanned DONE
+
 - make a patch status request, it updates the status on request
 
 ### Integration with frontend:

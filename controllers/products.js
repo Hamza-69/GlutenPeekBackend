@@ -13,10 +13,10 @@ productRouter.post('/', async (request, response) => {
   response.json(savedProduct)
 })
 
-productRouter.get('/:id', async (request, response) => {
-  const product = await Product.find({ barcode: request.params.id }).populate([{ path: 'status' }, { path: 'symptoms' }, { path: 'claims' }])
+productRouter.get('/:barcode', async (request, response) => {
+  const product = await Product.find({ barcode: request.params.barcode }).populate([{ path: 'status' }, { path: 'symptoms' }, { path: 'claims' }])
   if (!product) return response.status(404).json({ error: 'Product not found' })
-  response.json(product)
+  response.status(200).json(product)
 })
 
 module.exports = productRouter
