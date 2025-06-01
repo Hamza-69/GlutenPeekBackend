@@ -7,6 +7,10 @@ const mongoose = require('mongoose')
       minLength: 3
     },
     bio: String,
+    pfp: {
+      type: String,
+      default: 'https://cdn-icons-png.flaticon.com/512/149/149071.png'
+    },
     email: {
       type: String,
       required: [true, 'Email address is required.'],
