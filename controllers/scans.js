@@ -7,6 +7,7 @@ scanRouter.post('/', async (request, response, next) => {
       return response.status(401).json({ error: 'Unauthorized: User not available' })
     }
     const { productBarcode, date } =  request.body // Use const
+
     const scan = new Scan({
       productBarcode,
       userId: request.user._id,
