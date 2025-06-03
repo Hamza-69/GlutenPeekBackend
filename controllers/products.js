@@ -20,6 +20,9 @@ productRouter.post('/', async (request, response, next) => {
 productRouter.get('/:barcode', async (request, response, next) => {
   try {
     const barcode = parseInt(request.params.barcode, 10)
+    if (isNaN(barcode)) {
+      return response.status(400).json({ error: 'Invalid barcode format. Barcode must be a number.' })
+    }
     // Changed to findOne, and ensure product is an object or null, not an array
     const product = await Product.findOne({ barcode }).populate([{ path: 'symptoms' }, { path: 'claims' }])
     if (!product) { // Check if product is null (findOne returns null if not found)

@@ -13,8 +13,11 @@ const errorHandler = (error, request, response, next) => {
   } else if (error.name ===  'JsonWebTokenError') {
     return response.status(400).json({ error: 'token missing or invalid' })
   }
-  // Log unhandled errors before passing them to the default error handler
+
+  // Log unhandled errors before any further action
   console.error('Unhandled error in errorHandler:', error)
+
+  // Pass to default error handler
   next(error)
 }
 
@@ -27,12 +30,21 @@ const tokenExtractor = (request, response, next) => {
 }
 
 const userExtractor = async (request, response, next) => {
-  const decodedToken = jwt.verify(request.token, process.env.SECRET)
-  request.user = await User.findById(decodedToken.id)
-  if (!request.user) {
-    return response.status(401).json({ error: 'User not found for token' })
+  if (!request.token) {
+    return response.status(401).json({ error: 'Authentication token missing' })
   }
-  next()
+
+  try {
+    const decodedToken = jwt.verify(request.token, process.env.SECRET)
+    request.user = await User.findById(decodedToken.id)
+    if (!request.user) {
+      return response.status(401).json({ error: 'User not found for token' })
+    }
+    next()
+  } catch (error) {
+    // If jwt.verify fails, or any other error occurs, pass it to the error handler
+    next(error)
+  }
 }
 
 const unknownEndpoint = (request, response) => {

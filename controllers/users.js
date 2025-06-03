@@ -13,8 +13,8 @@ userRouter.get('/', tokenExtractor, userExtractor, async (request, response) => 
 userRouter.post('/', async (request, response, next) => {
   const { name, email, bio, pfp, password } = request.body
 
-  if (!password) {
-    return response.status(400).json({ error: 'Password is required' })
+  if (!password || password.length < 8) {
+    return response.status(400).json({ error: 'Password is required and must be at least 8 characters long' })
   }
 
   try {

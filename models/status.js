@@ -2,8 +2,8 @@ const mongoose = require('mongoose')
 
 const statusSchema = new mongoose.Schema({
   productBarcode: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Product',
+    type: Number,
+    ref: 'Product', // Still useful for virtual population if barcode is unique in Product
     required: true
   },
   status: {
