@@ -11,6 +11,9 @@ const scanRouter = require('./controllers/scans')
 const claimRouter = require('./controllers/claims')
 const dayRouter = require('./controllers/days')
 const symptomRouter = require('./controllers/symptoms')
+const statusRouter = require('./controllers/status')
+const commentRouter = require('./controllers/comment')
+const postRouter = require('./controllers/post')
 
 const app = express()
 
@@ -36,14 +39,16 @@ app.get('/', (req, res) => {
 })
 app.use('/api/login', loginRouter)
 app.use('/api/users', userRouter)
+app.use('/api/products', productRouter)
+app.use('/api/status', statusRouter)
 
 app.use(middleware.tokenExtractor, middleware.userExtractor)
-app.use('/api/products', productRouter)
 app.use('/api/scans', scanRouter)
 app.use('/api/claims', claimRouter)
 app.use('/api/days', dayRouter)
 app.use('/api/symptoms', symptomRouter)
-
+app.use('/api/posts', postRouter)
+app.use('/api/comments', commentRouter)
 app.use(middleware.errorHandler, middleware.unknownEndpoint)
 
 module.exports = app

@@ -1,6 +1,11 @@
 const mongoose = require('mongoose')
 
-const postSchema = new mongoose.Schema({
+const CommentSchema = new mongoose.Schema({
+  postId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Post',
+    required: true
+  },
   userId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
@@ -34,11 +39,4 @@ const postSchema = new mongoose.Schema({
   toObject: { virtuals: true }
 })
 
-postSchema.virtual('comments', {
-  ref: 'Comment',
-  localField: '_id',
-  foreignField: 'postId',
-  justOne: false
-})
-
-module.exports = mongoose.model('Post', postSchema)
+module.exports = mongoose.model('Comment', CommentSchema)
