@@ -7,10 +7,6 @@ symptomRouter.post('/', async (request, response, next) => {
   if (!request.user || !request.user._id) {
     return response.status(401).json({ error: 'Unauthorized: User not available' })
   }
-  if (!request.day || !request.day._id) {
-    console.error('Error in POST /api/symptoms: request.day is not available or missing _id.')
-    return response.status(500).json({ error: 'Server error: Day information could not be processed.' })
-  }
   if (request.body.date === undefined || request.body.severity === undefined) {
     return response.status(400).json({ error: 'Missing required fields in body: date, or severity.' })
   }
@@ -27,19 +23,10 @@ symptomRouter.post('/', async (request, response, next) => {
     for (const scanId of allQueryValues) {
       const scan = await Scan.findById(new mongoose.Types.ObjectId(scanId))
 
-      console.log({
-        userId: request.user._id,
-        date: new Date(date),
-        productBarcode: scan.productBarcode,
-        dayId: request.day._id,
-        scanId: scan._id,
-        severity
-      })
       const symptom = new Symptom({
         userId: request.user._id,
-        date: new Date(date),
+        date,
         productBarcode: scan.productBarcode,
-        dayId: request.day._id,
         scanId: scan._id,
         severity
       })

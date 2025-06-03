@@ -1,51 +1,50 @@
-const dayRouter = require('express').Router()
-const Day = require('./../models/day')
+const Scan = require('../models/scan')
+const Symptom = require('../models/symptom')
 
-dayRouter.get('/:nb', async (request, response, next) => {
+const dayRouter = require('express').Router()
+
+dayRouter.get('/', async (request, response, next) => {
   try {
     if (!request.user || !request.user._id) {
       return response.status(401).json({ error: 'Unauthorized: User not available' })
     }
-    const nb = parseInt(request.params.nb, 10)
     const userId = request.user._id
 
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
+    const startDate = new Date(request.query.startdate)
+    const endDate = new Date(request.query.enddate)
 
-    const dateList = []
-    for (let i = nb - 1; i >= 0; i--) {
-      const d = new Date(today)
-      d.setDate(today.getDate() - i)
-      dateList.push(d)
+    if (startDate > endDate) {
+      return response.status(400).json({ error: 'Start date must be before end date' })
     }
 
-    const startDate = dateList[0]
-    const endDate = dateList[dateList.length - 1]
+    const curr = new Date(startDate)
+    const dateList = []
+    while (curr <= endDate) {
+      dateList.push(new Date(curr))
+      curr.setDate(curr.getDate() + 1)
+    }
 
-    const realDays = await Day.find({
+    const realSymptoms = await Symptom.find({
       userId,
-      date: { $gte: startDate, $lte: endDate },
+      date: { $gte: startDate, $lte: endDate.setDate(endDate.getDate() + 1) },
     })
-      .populate([{ path: 'scans' }, { path: 'symptoms' }])
-      .lean()
 
-    const dayMap = new Map(
-      realDays.map(day => [new Date(day.date).toISOString().split('T')[0], day])
-    )
-
-    const results = dateList.map(date => {
+    const realScans =  await Scan.find({
+      userId,
+      date: { $gte: startDate, $lte: endDate.setDate(endDate.getDate() + 1) },
+    })
+    console.log(realScans, realSymptoms, dateList)
+    const realDays = dateList.map(date => {
       const key = date.toISOString().split('T')[0]
-      const existing = dayMap.get(key)
-      return existing || {
+      return {
         date,
-        scans: [],
-        symptoms: [],
+        scans: [realScans.filter(scan => new Date(scan.date).toISOString().split('T')[0] === key)],
+        symptoms: [realSymptoms.filter(symptom => new Date(symptom.date).toISOString().split('T')[0] === key)],
         userId,
-        placeholder: true,
       }
     })
 
-    response.json(results)
+    response.json(realDays)
   } catch (error) {
     next(error)
   }

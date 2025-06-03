@@ -15,11 +15,6 @@ const symptomSchema = new mongoose.Schema({
     ref: 'Product',
     required: true
   },
-  dayId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Day',
-    required: true
-  },
   scanId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Scan',

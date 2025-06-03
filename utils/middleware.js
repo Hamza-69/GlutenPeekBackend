@@ -1,6 +1,5 @@
 const jwt = require('jsonwebtoken')
 const User = require('../models/user')
-const Day = require('../models/day')
 
 const errorHandler = (error, request, response, next) => {
   console.error(error.message)
@@ -36,28 +35,6 @@ const userExtractor = async (request, response, next) => {
   next()
 }
 
-const dayExtractor = async (request, response, next) => {
-  if (!request.user) {
-    return next(new Error('User not available for day extraction. Ensure userExtractor runs first and successfully.'))
-  }
-
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-
-  const day = await Day.findOne({ userId: request.user._id }, {}, { sort: { 'date': -1 } })
-
-  if (day && day.date.getTime() === today.getTime()) {
-    request.day = day
-  } else {
-    const newDay = new Day({
-      userId: request.user._id,
-      date: today // Use the 'today' variable which is already set to the start of the day
-    })
-    request.day = await newDay.save()
-  }
-  next()
-}
-
 const unknownEndpoint = (request, response) => {
   response.status(404).send({ error: 'unknown endpoint' })
 }
@@ -65,7 +42,6 @@ const unknownEndpoint = (request, response) => {
 module.exports = {
   tokenExtractor,
   userExtractor,
-  dayExtractor,
   unknownEndpoint,
   errorHandler
 }

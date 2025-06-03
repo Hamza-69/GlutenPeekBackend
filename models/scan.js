@@ -8,16 +8,11 @@ const scanSchema = new mongoose.Schema({
   },
   date: {
     type: Date,
-    default: Date.now
+    required: true
   },
   productBarcode: {
     type: Number,
     ref: 'Product',
-    required: true
-  },
-  dayId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Day',
     required: true
   },
   symptoms: [

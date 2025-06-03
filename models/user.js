@@ -45,8 +45,15 @@ const userSchema = new mongoose.Schema(
   }
 )
 
-userSchema.virtual('days', {
-  ref: 'Day',
+userSchema.virtual('scans', {
+  ref: 'Scan',
+  localField: '_id',
+  foreignField: 'userId',
+  justOne: false,
+})
+
+userSchema.virtual('symptoms', {
+  ref: 'Symptom',
   localField: '_id',
   foreignField: 'userId',
   justOne: false,
