@@ -2,12 +2,16 @@ const userRouter = require('express').Router()
 const User = require('./../models/user')
 const bcrypt = require('bcrypt')
 const { tokenExtractor, userExtractor } = require('../utils/middleware')
+const { calculateStreak } = require('../utils/streakCalculator') // Import calculateStreak
 
 userRouter.get('/', tokenExtractor, userExtractor, async (request, response) => {
   if (!request.user) {
     return response.status(401).json({ error: 'Unauthorized: User not available' })
   }
-  response.status(200).json(await request.user.toJSON())
+  const userId = request.user.id // Or request.user._id, depending on preference
+  const userObject = await request.user.toJSON()
+  userObject.streak = await calculateStreak(userId)
+  response.status(200).json(userObject)
 })
 
 userRouter.post('/', async (request, response, next) => {
@@ -184,15 +188,14 @@ userRouter.patch('/settings', tokenExtractor, userExtractor, async (request, res
 
 
     if (changesMade) {
-      const updatedUser = await user.save()
-      // Return only the settings part or the whole user, as per requirements.
-      // For now, returning the updated settings.
-      response.status(200).json(updatedUser.settings)
-    } else {
-      // No changes were made, or no valid settings provided
-      response.status(200).json(user.settings) // Return current settings
+      await user.save() // Save the user document
     }
 
+    // Fetch the potentially updated user again to ensure settings are correctly populated for toJSON()
+    const userForResponse = await User.findById(userId)
+    const userObject = userForResponse.toJSON()
+    userObject.streak = await calculateStreak(userId)
+    response.status(200).json(userObject)
   } catch (error) {
     next(error)
   }
@@ -260,12 +263,14 @@ const updateUserProfile = async (request, response, next) => {
     }
 
     if (changesMade) {
-      const updatedUser = await user.save()
-      response.status(200).json(updatedUser.toJSON())
-    } else {
-      response.status(200).json(user.toJSON()) // No changes, return current user
+      await user.save() // Save the user document
     }
 
+    // Fetch the potentially updated user again to ensure all fields are fresh
+    const userForResponse = await User.findById(userId)
+    const userObject = userForResponse.toJSON()
+    userObject.streak = await calculateStreak(userId)
+    response.status(200).json(userObject)
   } catch (error) {
     // Handle potential errors like duplicate key if email check somehow fails before save
     if (error.name === 'MongoServerError' && error.code === 11000 && error.keyValue && error.keyValue.email) {

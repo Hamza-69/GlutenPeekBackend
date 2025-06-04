@@ -2,6 +2,7 @@ const loginRouter = require('express').Router()
 const bcrypt = require('bcrypt')
 const User = require('../models/user')
 const jwt = require('jsonwebtoken')
+const { calculateStreak } = require('../utils/streakCalculator') // Import calculateStreak
 
 loginRouter.post('/', async (request, response, next) => {
   try {
@@ -26,9 +27,16 @@ loginRouter.post('/', async (request, response, next) => {
       process.env.SECRET,
       { expiresIn: '168h' } // Added expiration
     )
+    // Prepare user object for response (excluding passwordHash, etc.)
+    const userObject = user.toJSON() // user.toJSON() is defined in User model
+
+    // Calculate streak
+    const streak = await calculateStreak(user._id)
+    userObject.streak = streak // Add streak to the user object
+
     response
       .status(200)
-      .send({ token, email: user.email, name: user.name })
+      .send({ token, user: userObject }) // Send token and the modified user object
   } catch (error) {
     next(error)
   }
