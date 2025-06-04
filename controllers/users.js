@@ -4,7 +4,8 @@ const bcrypt = require('bcrypt')
 const { tokenExtractor, userExtractor } = require('../utils/middleware')
 const { calculateStreak } = require('../utils/streakCalculator') // Import calculateStreak
 
-userRouter.get('/', tokenExtractor, userExtractor, async (request, response) => {
+// Get authenticated user's own profile
+userRouter.get('/me', tokenExtractor, userExtractor, async (request, response) => {
   if (!request.user) {
     return response.status(401).json({ error: 'Unauthorized: User not available' })
   }
@@ -12,6 +13,53 @@ userRouter.get('/', tokenExtractor, userExtractor, async (request, response) => 
   const userObject = await request.user.toJSON()
   userObject.streak = await calculateStreak(userId)
   response.status(200).json(userObject)
+})
+
+// Search users with pagination (public route)
+userRouter.get('/search', async (req, res, next) => {
+  try {
+    const limit = parseInt(req.query.limit, 10) || 10
+    const cursor = req.query.cursor
+    const searchQuery = req.query.q
+
+    const queryCriteria = {}
+    if (searchQuery) {
+      queryCriteria.name = { $regex: searchQuery, $options: 'i' }
+    }
+
+    const sortCriteria = { name: 1, _id: 1 } // Sort by name (asc), then _id (asc)
+
+    if (cursor) {
+      // Fetch only name and _id for the cursor user, as these are needed for query logic
+      const cursorUser = await User.findById(cursor).select('name _id').lean()
+      if (!cursorUser) {
+        return res.status(400).json({ error: 'Invalid cursor' })
+      }
+      queryCriteria.$or = [
+        { name: { $gt: cursorUser.name } },
+        { name: cursorUser.name, _id: { $gt: cursorUser._id } }
+      ]
+    }
+
+    // Select only public fields for the search results
+    const users = await User.find(queryCriteria)
+      .sort(sortCriteria)
+      .limit(limit + 1)
+      .select('name pfp bio _id') // _id is needed for nextCursor and toJSON will map it to id
+
+    let nextCursor = null
+    if (users.length > limit) {
+      nextCursor = users[limit - 1]._id.toString()
+      users.pop() // Remove the extra item
+    }
+
+    // Ensure toJSON is called for each user to apply transformations (e.g., _id to id, remove passwordHash)
+    const publicUsers = users.map(user => user.toJSON())
+
+    res.status(200).json({ users: publicUsers, nextCursor })
+  } catch (error) {
+    next(error)
+  }
 })
 
 userRouter.post('/', async (request, response, next) => {

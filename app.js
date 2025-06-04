@@ -6,14 +6,14 @@ const env = require('./utils/config')
 const middleware = require('./utils/middleware')
 const { userRouter, getPublicUserProfile } = require('./controllers/users') // Modified import
 const loginRouter = require('./controllers/login')
-const productRouter = require('./controllers/products')
+const { productRouter, publicProductRouter } = require('./controllers/products') // Updated import
 const scanRouter = require('./controllers/scans')
-const claimRouter = require('./controllers/claims')
+const { claimsRouter, publicClaimsRouter } = require('./controllers/claims') // Updated import
 const dayRouter = require('./controllers/days')
 const symptomRouter = require('./controllers/symptoms')
 const statusRouter = require('./controllers/status')
 const commentRouter = require('./controllers/comment')
-const postRouter = require('./controllers/post')
+const { postsRouter, publicPostsRouter } = require('./controllers/post') // Updated import
 
 const app = express()
 
@@ -38,20 +38,27 @@ app.get('/', (req, res) => {
   res.send('Welcome to GlutenPeek Api!')
 })
 
-// Public user profile route - must be before authenticated /api/users
+// Authenticated user routes should be checked first for specific paths like /me
+app.use('/api/users', userRouter) // Authenticated user routes (handles /me, /:id/follow, etc.)
+// Public user profile route for specific IDs not caught by userRouter
 app.get('/api/users/:id', getPublicUserProfile)
 
 app.use('/api/login', loginRouter)
-app.use('/api/users', userRouter) // Authenticated user routes
-app.use('/api/products', productRouter)
-app.use('/api/status', statusRouter)
+// Mount public routes BEFORE authentication middleware
+app.use('/api/products', publicProductRouter) // Handles GET /:barcode, GET /search
+app.use('/api/posts', publicPostsRouter) // Handles GET /, GET /:id, GET /search
+app.use('/api/claims', publicClaimsRouter) // Handles GET /search (already done)
+app.use('/api/status', statusRouter) // Assuming statusRouter is public or handles its own auth
 
 app.use(middleware.tokenExtractor, middleware.userExtractor)
+
+// Mount authenticated routes AFTER authentication middleware
+app.use('/api/products', productRouter) // Handles POST /
+app.use('/api/posts', postsRouter) // Handles POST /, POST /:id/like, etc.
+app.use('/api/claims', claimsRouter) // This handles authenticated routes like POST /, GET /:id
 app.use('/api/scans', scanRouter)
-app.use('/api/claims', claimRouter)
 app.use('/api/days', dayRouter)
 app.use('/api/symptoms', symptomRouter)
-app.use('/api/posts', postRouter)
 app.use('/api/comments', commentRouter)
 app.use(middleware.errorHandler, middleware.unknownEndpoint)
 

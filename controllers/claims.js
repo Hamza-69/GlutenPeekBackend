@@ -1,7 +1,56 @@
 const claimsRouter = require('express').Router()
+const publicClaimsRouter = require('express').Router() // New router for public routes
 const Claim = require('./../models/claim')
 const Product = require('./../models/product')
 
+// Search claims with pagination (public route) - Moved to publicClaimsRouter
+publicClaimsRouter.get('/search', async (req, res, next) => {
+  try {
+    const limit = parseInt(req.query.limit, 10) || 10
+    const cursor = req.query.cursor
+    const searchQuery = req.query.q
+
+    const queryCriteria = {}
+    if (searchQuery) {
+      queryCriteria.explanation = { $regex: searchQuery, $options: 'i' }
+    }
+
+    const sortCriteria = { explanation: 1, _id: 1 } // Sort by explanation (asc), then _id (asc)
+
+    if (cursor) {
+      const cursorClaim = await Claim.findById(cursor).select('explanation _id').lean()
+      if (!cursorClaim) {
+        return res.status(400).json({ error: 'Invalid cursor' })
+      }
+      queryCriteria.$or = [
+        { explanation: { $gt: cursorClaim.explanation } },
+        { explanation: cursorClaim.explanation, _id: { $gt: cursorClaim._id } }
+      ]
+    }
+
+    const claims = await Claim.find(queryCriteria)
+      .sort(sortCriteria)
+      .limit(limit + 1)
+      // Optionally, populate related data if needed for display, e.g., user or product info
+      // .populate('userId', 'name pfp') // Example: if you want to show who made the claim
+      // .populate('productBarcode', 'name') // Example: if you want to show product name
+
+    let nextCursor = null
+    if (claims.length > limit) {
+      nextCursor = claims[limit - 1]._id.toString()
+      claims.pop() // Remove the extra item
+    }
+
+    // Ensure toJSON is called for each claim to apply transformations (e.g., _id to id)
+    const transformedClaims = claims.map(claim => claim.toJSON())
+
+    res.status(200).json({ claims: transformedClaims, nextCursor })
+  } catch (error) {
+    next(error)
+  }
+})
+
+// Authenticated routes remain on claimsRouter
 claimsRouter.get('/', async (req, res, next) => {
   try {
     if (!req.user) {
@@ -111,4 +160,4 @@ claimsRouter.post('/', async (req, res, next) => {
   }
 })
 
-module.exports = claimsRouter
+module.exports = { claimsRouter, publicClaimsRouter } // Export both routers
