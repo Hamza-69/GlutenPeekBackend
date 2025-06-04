@@ -19,7 +19,8 @@ const postSchema = new mongoose.Schema({
       },
       message: 'You can provide at most 5 media URLs.'
     }
-  }
+  },
+  likes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }]
 }, {
   timestamps: true,
   toJSON: {

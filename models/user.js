@@ -30,6 +30,13 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    following: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    followers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    settings: {
+      theme: { type: Boolean, default: false },
+      telegram_notifications: { type: Boolean, default: false },
+      telegram_number: { type: String },
+    },
   },
   {
     toJSON: {
