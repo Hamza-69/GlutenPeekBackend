@@ -196,7 +196,6 @@ userRouter.patch('/settings', tokenExtractor, userExtractor, async (request, res
     const userObject = userForResponse.toJSON()
     userObject.streak = await calculateStreak(userId)
     response.status(200).json(userObject)
-
   } catch (error) {
     next(error)
   }
@@ -272,7 +271,6 @@ const updateUserProfile = async (request, response, next) => {
     const userObject = userForResponse.toJSON()
     userObject.streak = await calculateStreak(userId)
     response.status(200).json(userObject)
-
   } catch (error) {
     // Handle potential errors like duplicate key if email check somehow fails before save
     if (error.name === 'MongoServerError' && error.code === 11000 && error.keyValue && error.keyValue.email) {
