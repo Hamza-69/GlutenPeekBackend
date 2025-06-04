@@ -81,7 +81,7 @@ publicPostsRouter.get('/search', async (req, res, next) => {
 // Get single post by ID - moved to publicPostsRouter
 publicPostsRouter.get('/:id', async (req, res, next) => {
   try {
-    const post = await Post.findById(req.params.id).populate('comments')
+    const post = await Post.find({ userId: req.params.id }).populate('comments')
     if (!post) {
       return res.status(404).json({ error: 'Post not found' })
     }
