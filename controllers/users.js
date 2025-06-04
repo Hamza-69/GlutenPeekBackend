@@ -198,4 +198,84 @@ userRouter.patch('/settings', tokenExtractor, userExtractor, async (request, res
   }
 })
 
-module.exports = { userRouter, getPublicUserProfile }
+const updateUserProfile = async (request, response, next) => {
+  try {
+    if (!request.user) {
+      return response.status(401).json({ error: 'Unauthorized: User not available' })
+    }
+    const userId = request.user.id
+    const user = await User.findById(userId)
+
+    if (!user) {
+      return response.status(404).json({ error: 'User not found.' }) // Should not happen
+    }
+
+    const { name, email, password, pfp, bio } = request.body
+    let changesMade = false
+
+    // Name Update
+    if (name !== undefined && name !== user.name) {
+      if (name.length < 3) {
+        return response.status(400).json({ error: 'Name must be at least 3 characters long.' })
+      }
+      user.name = name
+      changesMade = true
+    }
+
+    // Email Update
+    if (email !== undefined && email !== user.email) {
+      const emailRegex = /^(([^<>()[\]\\.,:\s@']+(\.[^<>()[\]\\.,:\s@']+)*)|('.+'))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+      if (!emailRegex.test(email)) {
+        return response.status(400).json({ error: 'Invalid email format.' })
+      }
+      const existingUserWithEmail = await User.findOne({ email: email })
+      if (existingUserWithEmail && existingUserWithEmail._id.toString() !== userId) {
+        return response.status(400).json({ error: 'Email is already in use.' })
+      }
+      user.email = email
+      changesMade = true
+    }
+
+    // PFP Update
+    if (pfp !== undefined && pfp !== user.pfp) {
+      // Optional: Add URL validation for pfp if needed
+      user.pfp = pfp
+      changesMade = true
+    }
+
+    // Bio Update
+    if (bio !== undefined && bio !== user.bio) {
+      user.bio = bio
+      changesMade = true
+    }
+
+    // Password Update
+    if (password !== undefined) {
+      if (password.length < 8) { // Consistent with user creation
+        return response.status(400).json({ error: 'Password must be at least 8 characters long.' })
+      }
+      const saltRounds = 10
+      user.passwordHash = await bcrypt.hash(password, saltRounds)
+      changesMade = true
+    }
+
+    if (changesMade) {
+      const updatedUser = await user.save()
+      response.status(200).json(updatedUser.toJSON())
+    } else {
+      response.status(200).json(user.toJSON()) // No changes, return current user
+    }
+
+  } catch (error) {
+    // Handle potential errors like duplicate key if email check somehow fails before save
+    if (error.name === 'MongoServerError' && error.code === 11000 && error.keyValue && error.keyValue.email) {
+      return response.status(400).json({ error: 'Email is already in use (caught by database).' });
+    }
+    next(error)
+  }
+}
+
+// Add the new updateUserProfile to the router for the authenticated user
+userRouter.patch('/profile', tokenExtractor, userExtractor, updateUserProfile)
+
+module.exports = { userRouter, getPublicUserProfile, updateUserProfile }
