@@ -7,12 +7,12 @@ symptomRouter.post('/', async (request, response, next) => {
   if (!request.user || !request.user._id) {
     return response.status(401).json({ error: 'Unauthorized: User not available' })
   }
-  if (request.body.date === undefined || request.body.severity === undefined) {
-    return response.status(400).json({ error: 'Missing required fields in body: date, or severity.' })
+  if (request.body.date === undefined || request.body.symptoms === undefined) {
+    return response.status(400).json({ error: 'Missing required fields in body: date, or symptoms.' })
   }
 
   try {
-    const { date, severity } = request.body
+    const { date, symptoms } = request.body
     const allQueryValues = Object.values(request.query)
 
     if (!allQueryValues || allQueryValues.length === 0) {
@@ -28,7 +28,7 @@ symptomRouter.post('/', async (request, response, next) => {
         date,
         productBarcode: scan.productBarcode,
         scanId: scan._id,
-        severity
+        symptoms
       })
 
       const savedSymptom = await symptom.save()
