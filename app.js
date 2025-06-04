@@ -4,7 +4,7 @@ const cors = require('cors')
 const mongoose = require('mongoose')
 const env = require('./utils/config')
 const middleware = require('./utils/middleware')
-const userRouter = require('./controllers/users')
+const { userRouter, getPublicUserProfile } = require('./controllers/users') // Modified import
 const loginRouter = require('./controllers/login')
 const productRouter = require('./controllers/products')
 const scanRouter = require('./controllers/scans')
@@ -37,8 +37,12 @@ app.use(cors())
 app.get('/', (req, res) => {
   res.send('Welcome to GlutenPeek Api!')
 })
+
+// Public user profile route - must be before authenticated /api/users
+app.get('/api/users/:id', getPublicUserProfile)
+
 app.use('/api/login', loginRouter)
-app.use('/api/users', userRouter)
+app.use('/api/users', userRouter) // Authenticated user routes
 app.use('/api/products', productRouter)
 app.use('/api/status', statusRouter)
 
