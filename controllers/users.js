@@ -178,155 +178,115 @@ const getPublicUserProfile = async (request, response, next) => {
   }
 }
 
-// Update user settings
-userRouter.patch('/settings', tokenExtractor, userExtractor, async (request, response, next) => {
-  try {
-    if (!request.user) {
-      // This check is technically redundant if userExtractor does its job, but good for safety.
-      return response.status(401).json({ error: 'Unauthorized: User not available' })
-    }
-
-    const userId = request.user.id
-    const { theme, telegram_notifications, telegram_number } = request.body
-
-    // Fetch the user to ensure we're working with the latest document
-    // request.user is from the token, might be slightly stale if updated elsewhere
-    const user = await User.findById(userId)
-    if (!user) {
-      // Should not happen if token is valid and user exists
-      return response.status(404).json({ error: 'User not found.' })
-    }
-
-    let changesMade = false;
-
-    // Update theme if provided and valid
-    if (theme !== undefined) {
-      if (typeof theme !== 'boolean') {
-        return response.status(400).json({ error: 'Invalid theme value. Must be true or false.' })
-      }
-      user.settings.theme = theme
-      changesMade = true;
-    }
-
-    // Update telegram_notifications if provided and valid
-    if (telegram_notifications !== undefined) {
-      if (typeof telegram_notifications !== 'boolean') {
-        return response.status(400).json({ error: 'Invalid telegram_notifications value. Must be true or false.' })
-      }
-      user.settings.telegram_notifications = telegram_notifications
-      changesMade = true;
-    }
-
-    // Update telegram_number if provided (allow string, null, or empty string to clear)
-    if (telegram_number !== undefined) {
-      if (typeof telegram_number !== 'string' && telegram_number !== null) {
-         // Allow null to unset, but if not null, must be string
-        return response.status(400).json({ error: 'Invalid telegram_number value. Must be a string or null.' })
-      }
-      // If an empty string is passed, Mongoose will store it as such.
-      // If null is passed, Mongoose will remove the field if there's no default, or use default.
-      // In our schema, telegram_number is just `type: String`, so null will likely remove it or store as null.
-      user.settings.telegram_number = telegram_number === "" ? null : telegram_number; // Store empty string as null
-      changesMade = true;
-    }
-
-    if (!user.settings) { // Should be initialized by mongoose default
-        user.settings = {};
-    }
-
-
-    if (changesMade) {
-      await user.save() // Save the user document
-    }
-
-    // Fetch the potentially updated user again to ensure settings are correctly populated for toJSON()
-    const userForResponse = await User.findById(userId)
-    const userObject = userForResponse.toJSON()
-    userObject.streak = await calculateStreak(userId)
-    response.status(200).json(userObject)
-  } catch (error) {
-    next(error)
-  }
-})
-
 const updateUserProfile = async (request, response, next) => {
   try {
     if (!request.user) {
-      return response.status(401).json({ error: 'Unauthorized: User not available' })
+      return response.status(401).json({ error: 'Unauthorized: User not available' });
     }
-    const userId = request.user.id
-    const user = await User.findById(userId)
 
+    const userId = request.user.id;
+    const user = await User.findById(userId);
     if (!user) {
-      return response.status(404).json({ error: 'User not found.' }) // Should not happen
+      return response.status(404).json({ error: 'User not found.' });
     }
 
-    const { name, email, password, pfp, bio } = request.body
-    let changesMade = false
+    const {
+      name,
+      email,
+      password,
+      pfp,
+      bio,
+      telegram_notifications,
+      telegram_number,
+      theme
+    } = request.body;
 
-    // Name Update
+    let changesMade = false;
+
+    // Name
     if (name !== undefined && name !== user.name) {
       if (name.length < 3) {
-        return response.status(400).json({ error: 'Name must be at least 3 characters long.' })
+        return response.status(400).json({ error: 'Name must be at least 3 characters long.' });
       }
-      user.name = name
-      changesMade = true
+      user.name = name;
+      changesMade = true;
     }
 
-    // Email Update
+    // Email
     if (email !== undefined && email !== user.email) {
-      const emailRegex = /^(([^<>()[\]\\.,:\s@']+(\.[^<>()[\]\\.,:\s@']+)*)|('.+'))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+      const emailRegex = /^(([^<>()[\]\\.,:\s@']+(\.[^<>()[\]\\.,:\s@']+)*)|('.+'))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
       if (!emailRegex.test(email)) {
-        return response.status(400).json({ error: 'Invalid email format.' })
+        return response.status(400).json({ error: 'Invalid email format.' });
       }
-      const existingUserWithEmail = await User.findOne({ email: email })
+      const existingUserWithEmail = await User.findOne({ email });
       if (existingUserWithEmail && existingUserWithEmail._id.toString() !== userId) {
-        return response.status(400).json({ error: 'Email is already in use.' })
+        return response.status(400).json({ error: 'Email is already in use.' });
       }
-      user.email = email
-      changesMade = true
+      user.email = email;
+      changesMade = true;
     }
 
-    // PFP Update
-    if (pfp !== undefined && pfp !== user.pfp) {
-      // Optional: Add URL validation for pfp if needed
-      user.pfp = pfp
-      changesMade = true
-    }
-
-    // Bio Update
-    if (bio !== undefined && bio !== user.bio) {
-      user.bio = bio
-      changesMade = true
-    }
-
-    // Password Update
+    // Password
     if (password !== undefined) {
-      if (password.length < 8) { // Consistent with user creation
-        return response.status(400).json({ error: 'Password must be at least 8 characters long.' })
+      if (password.length < 8) {
+        return response.status(400).json({ error: 'Password must be at least 8 characters long.' });
       }
-      const saltRounds = 10
-      user.passwordHash = await bcrypt.hash(password, saltRounds)
-      changesMade = true
+      const saltRounds = 10;
+      user.passwordHash = await bcrypt.hash(password, saltRounds);
+      changesMade = true;
+    }
+
+    // PFP
+    if (pfp !== undefined && pfp !== user.pfp) {
+      user.pfp = pfp;
+      changesMade = true;
+    }
+
+    // Bio
+    if (bio !== undefined && bio !== user.bio) {
+      user.bio = bio;
+      changesMade = true;
+    }
+
+    // Telegram Notifications
+    if (telegram_notifications !== undefined) {
+      if (!user.settings) user.settings = {};
+      user.settings.telegram_notifications = telegram_notifications;
+      changesMade = true;
+    }
+
+    if (telegram_number !== undefined) {
+      if (!user.settings) user.settings = {};
+      user.settings.telegram_number = telegram_number;
+      changesMade = true;
+    }
+
+    if (theme !== undefined) {
+      if (!user.settings) user.settings = {};
+      user.settings.theme = theme;
+      changesMade = true;
     }
 
     if (changesMade) {
-      await user.save() // Save the user document
+      await user.save();
     }
 
-    // Fetch the potentially updated user again to ensure all fields are fresh
-    const userForResponse = await User.findById(userId)
-    const userObject = userForResponse.toJSON()
-    userObject.streak = await calculateStreak(userId)
-    response.status(200).json(userObject)
+    const updatedUser = await User.findById(userId);
+    const userObject = updatedUser.toJSON();
+    userObject.streak = await calculateStreak(userId);
+
+    response.status(200).json(userObject);
   } catch (error) {
-    // Handle potential errors like duplicate key if email check somehow fails before save
-    if (error.name === 'MongoServerError' && error.code === 11000 && error.keyValue && error.keyValue.email) {
+    if (
+      error.name === 'MongoServerError' &&
+      error.code === 11000 &&
+      error.keyValue?.email
+    ) {
       return response.status(400).json({ error: 'Email is already in use (caught by database).' });
     }
-    next(error)
+    next(error);
   }
-}
+};
 
 // Add the new updateUserProfile to the router for the authenticated user
 userRouter.patch('/profile', tokenExtractor, userExtractor, updateUserProfile)
