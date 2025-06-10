@@ -21,7 +21,31 @@ commentRouter.post('/:id', async (req, res, next) => {
       postId: req.params.id
     })
     const savedComment = await comment.save()
-    res.status(201).json(savedComment)
+    
+    // Populate the saved comment with user information
+    const populatedComment = await Comment.findById(savedComment._id)
+      .populate({
+        path: 'userId',
+        select: 'id name pfp bio following followers'
+      })
+    
+    res.status(201).json(populatedComment.toJSON())
+  } catch (error) {
+    next(error)
+  }
+})
+
+// Get comments for a post
+commentRouter.get('/post/:postId', async (req, res, next) => {
+  try {
+    const comments = await Comment.find({ postId: req.params.postId })
+      .populate({
+        path: 'userId',
+        select: 'id name pfp bio following followers'
+      })
+      .sort({ createdAt: -1 })
+
+    res.status(200).json(comments.map(comment => comment.toJSON()))
   } catch (error) {
     next(error)
   }

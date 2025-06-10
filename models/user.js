@@ -59,6 +59,13 @@ userSchema.virtual('scans', {
   justOne: false,
 })
 
+userSchema.virtual('posts', {
+  ref: 'Post',
+  localField: '_id',
+  foreignField: 'userId',
+  justOne: false,
+})
+
 userSchema.virtual('symptoms', {
   ref: 'Symptom',
   localField: '_id',

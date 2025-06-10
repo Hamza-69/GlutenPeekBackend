@@ -155,19 +155,42 @@ const getPublicUserProfile = async (request, response, next) => {
   try {
     const userId = request.params.id
     const user = await User.findById(userId)
+      .populate('followers', 'id name pfp bio following followers')
+      .populate('following', 'id name pfp bio following followers')
+      .populate({
+        path: 'posts',
+        populate: [
+          {
+            path: 'userId',
+            select: 'id name pfp bio following followers'
+          },
+          {
+            path: 'likes',
+            select: 'id name pfp bio following followers'
+          },
+          {
+            path: 'comments',
+            populate: {
+              path: 'userId',
+              select: 'id name pfp bio following followers'
+            }
+          }
+        ]
+      })
 
     if (!user) {
       return response.status(404).json({ error: 'User not found.' })
     }
 
-    // Return only public information
+    // Return public information with all populated data
     response.status(200).json({
+      id: user.id,
       name: user.name,
       pfp: user.pfp,
       bio: user.bio,
-      // Optionally, you might want to send counts for followers/following
-      // followersCount: user.followers.length,
-      // followingCount: user.following.length,
+      followers: user.followers,
+      following: user.following,
+      posts: user.posts,
     })
   } catch (error) {
     // If the ID format is invalid, Mongoose might throw an error

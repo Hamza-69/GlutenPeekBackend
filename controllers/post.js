@@ -17,7 +17,23 @@ publicPostsRouter.get('/', async (req, res, next) => {
     const posts = await Post.find(query)
       .sort({ createdAt: -1 })
       .limit(limit + 1)
-      .populate('userId', 'name pfp') // Populate user details for each post
+      .populate({
+        path: 'userId',
+        select: 'id name pfp bio following followers'
+      })
+      .populate({
+        path: 'likes',
+        select: 'id name pfp bio following followers'
+      })
+      .populate({
+        path: 'comments',
+        populate: [
+          {
+            path: 'userId',
+            select: 'id name pfp bio following followers'
+          }
+        ]
+      })
 
     let nextCursor = null
     if (posts.length > limit) {
@@ -63,7 +79,23 @@ publicPostsRouter.get('/search', async (req, res, next) => {
     const posts = await Post.find(queryCriteria)
       .sort(sortCriteria)
       .limit(limit + 1)
-      .populate('userId', 'name pfp') // Populate user details
+      .populate({
+        path: 'userId',
+        select: 'id name pfp bio following followers'
+      })
+      .populate({
+        path: 'likes',
+        select: 'id name pfp bio following followers'
+      })
+      .populate({
+        path: 'comments',
+        populate: [
+          {
+            path: 'userId',
+            select: 'id name pfp bio following followers'
+          }
+        ]
+      })
 
     let nextCursor = null
     if (posts.length > limit) {
@@ -81,11 +113,29 @@ publicPostsRouter.get('/search', async (req, res, next) => {
 // Get single post by ID - moved to publicPostsRouter
 publicPostsRouter.get('/:id', async (req, res, next) => {
   try {
-    const post = await Post.find({ userId: req.params.id }).populate('comments')
+    const post = await Post.findById(req.params.id)
+      .populate({
+        path: 'userId',
+        select: 'id name pfp bio following followers'
+      })
+      .populate({
+        path: 'likes',
+        select: 'id name pfp bio following followers'
+      })
+      .populate({
+        path: 'comments',
+        populate: [
+          {
+            path: 'userId',
+            select: 'id name pfp bio following followers'
+          }
+        ]
+      })
+
     if (!post) {
       return res.status(404).json({ error: 'Post not found' })
     }
-    res.status(200).json(post)
+    res.status(200).json(post.toJSON())
   } catch (error) {
     next(error)
   }
@@ -112,7 +162,7 @@ postsRouter.post('/:id/like', async (request, response, next) => {
       await post.save()
     }
     // Populate user details for likes before sending response
-    const populatedPost = await Post.findById(postId).populate('likes', 'name pfp')
+    const populatedPost = await Post.findById(postId).populate('likes', 'id name pfp')
     response.status(200).json({ message: 'Post liked successfully.', post: populatedPost })
   } catch (error) {
     next(error)
@@ -143,7 +193,7 @@ postsRouter.post('/:id/unlike', async (request, response, next) => {
     }
 
     // Populate user details for likes before sending response
-    const populatedPost = await Post.findById(postId).populate('likes', 'name pfp')
+    const populatedPost = await Post.findById(postId).populate('likes', 'id name pfp')
     response.status(200).json({ message: 'Post unliked successfully.', post: populatedPost })
   } catch (error) {
     next(error)
@@ -162,8 +212,26 @@ postsRouter.post('/', async (req, res, next) => {
       mediaUrls
     })
     const savedPost = await post.save()
-    // Ensure the created post is also transformed before sending
-    res.status(201).json(savedPost.toJSON())
+    // Populate the saved post with user and comments information
+    const populatedPost = await Post.findById(savedPost._id)
+      .populate({
+        path: 'userId',
+        select: 'id name pfp bio following followers'
+      })
+      .populate({
+        path: 'likes',
+        select: 'id name pfp bio following followers'
+      })
+      .populate({
+        path: 'comments',
+        populate: [
+          {
+            path: 'userId',
+            select: 'id name pfp bio following followers'
+          }
+        ]
+      })
+    res.status(201).json(populatedPost.toJSON())
   } catch (error) {
     next(error)
   }
