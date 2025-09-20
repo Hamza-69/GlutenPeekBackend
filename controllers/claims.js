@@ -97,7 +97,7 @@ claimsRouter.patch('/:id/status', async (request, response, next) => {
     // Only update explanation if provided, especially useful if admin wants to reopen without changing original explanation
     // or wants to add a closing explanation.
     if (explanation !== undefined) {
-        claim.explanation = explanation
+      claim.explanation = explanation
     } else if (status === true && claim.explanation.trim() === '') {
         // If closing and no new explanation is provided, and old one is empty, this might be an issue.
         // However, the previous check for (status === true && explanation is empty) should catch this.
@@ -113,7 +113,7 @@ claimsRouter.patch('/:id/status', async (request, response, next) => {
   } catch (error) {
     // Handle potential errors like invalid ObjectId for claimId
     if (error.name === 'CastError' && error.path === '_id') {
-        return response.status(400).json({ error: 'Invalid claim ID format.' });
+      return response.status(400).json({ error: 'Invalid claim ID format.' });
     }
     next(error)
   }

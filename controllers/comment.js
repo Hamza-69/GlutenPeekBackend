@@ -21,14 +21,14 @@ commentRouter.post('/:id', async (req, res, next) => {
       postId: req.params.id
     })
     const savedComment = await comment.save()
-    
+
     // Populate the saved comment with user information
     const populatedComment = await Comment.findById(savedComment._id)
       .populate({
         path: 'userId',
         select: 'id name pfp bio following followers'
       })
-    
+
     res.status(201).json(populatedComment.toJSON())
   } catch (error) {
     next(error)
